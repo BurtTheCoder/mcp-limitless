@@ -4,7 +4,7 @@
 
 The easiest way to deploy is using Cloudflare's "Deploy to Workers" button:
 
-[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/your-username/limitless-mcp-cloudflare)
+[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/BurtTheCoder/mcp-limitless)
 
 ## Manual Deployment Steps
 
