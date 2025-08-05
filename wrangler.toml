@@ -1,0 +1,11 @@
+// wrangler.toml
+name = "limitless-mcp-server"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+# Non-sensitive configuration can go here
+
+# Add your secrets using:
+# wrangler secret put LIMITLESS_API_KEY
