@@ -144,9 +144,9 @@ If you suspect a security incident:
 
 ## Responsible Disclosure
 
-Found a security vulnerability? Please report it to:
-- Create a private security advisory on GitHub
-- Or email: [your-security-email@example.com]
+Found a security vulnerability? Please report it by:
+- Creating a private security advisory on [GitHub](https://github.com/BurtTheCoder/mcp-limitless/security/advisories/new)
+- Opening an issue at [GitHub Issues](https://github.com/BurtTheCoder/mcp-limitless/issues)
 
 ## Updates
 
