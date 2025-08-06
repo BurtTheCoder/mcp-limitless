@@ -161,6 +161,8 @@ mcp-limitless/
 | `LIMITLESS_API_KEY` | Yes | Your Limitless AI API key |
 | `GITHUB_CLIENT_ID` | Yes | GitHub OAuth App Client ID |
 | `GITHUB_CLIENT_SECRET` | Yes | GitHub OAuth App Client Secret |
+| `ENABLE_IP_ALLOWLIST` | No | Set to `"true"` to only allow Anthropic IPs |
+| `RATE_LIMIT_KV` | No | KV namespace binding for rate limiting |
 
 ### Customization
 
@@ -200,12 +202,21 @@ npx wrangler tail
 - Limitless API: 180 requests per minute
 - Cloudflare Workers Free: 100,000 requests per day
 
-## Security Considerations
+## Security Features
 
-- Never commit `.dev.vars` or `wrangler.toml` (they're gitignored)
-- API keys are stored as encrypted secrets in Cloudflare
+### Built-in Security
+- OAuth 2.0 with PKCE for secure authorization
+- API keys stored as encrypted Cloudflare secrets
 - OAuth tokens expire after 1 hour
 - GitHub OAuth provides identity verification
+- HTTPS enforced by Cloudflare Workers
+
+### Optional Enhanced Security
+- **IP Allowlisting**: Restrict access to Anthropic's official IPs only
+- **Rate Limiting**: Prevent abuse with configurable request limits
+- **Security Headers**: HSTS, CSP, X-Frame-Options automatically applied
+
+To enable enhanced security features, see [SECURITY.md](SECURITY.md) for detailed configuration.
 
 ## Contributing
 

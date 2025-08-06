@@ -1,6 +1,7 @@
 // src/github-oauth-index.ts
 import { OAuthProvider } from '@cloudflare/workers-oauth-provider';
 import { LimitlessMCPAgent } from './mcp-agent';
+import { validateAnthropicOrigin, createSecurityHeaders, rateLimitCheck } from './security-middleware';
 
 export interface Env {
   LIMITLESS_API_KEY: string;
@@ -9,6 +10,8 @@ export interface Env {
   OAUTH_PROVIDER: any; // This will be set by the OAuthProvider
   GITHUB_CLIENT_ID: string;
   GITHUB_CLIENT_SECRET: string;
+  RATE_LIMIT_KV?: KVNamespace; // Optional rate limiting
+  ENABLE_IP_ALLOWLIST?: string; // Optional flag to enable IP allowlisting
 }
 
 // Export the Durable Object
@@ -311,7 +314,7 @@ export default {
     const mcpHandlers = LimitlessMCPAgent.mount('/sse', {
       binding: 'MCP_AGENT',
       corsOptions: {
-        origin: '*',
+        origin: env.ENABLE_IP_ALLOWLIST === 'true' ? 'https://claude.ai' : '*',
         methods: 'GET, POST, OPTIONS',
         headers: 'Content-Type, Accept, MCP-Protocol-Version, Authorization'
       }
@@ -319,6 +322,23 @@ export default {
     
     // Handle SSE endpoints
     if (url.pathname === '/sse' || url.pathname.startsWith('/sse/')) {
+      // Apply security checks if enabled
+      if (env.ENABLE_IP_ALLOWLIST === 'true' && !validateAnthropicOrigin(request)) {
+        console.warn('Rejected MCP request from unauthorized IP');
+        return new Response('Forbidden', { 
+          status: 403,
+          headers: createSecurityHeaders()
+        });
+      }
+      
+      // Apply rate limiting if available
+      if (env.RATE_LIMIT_KV && !(await rateLimitCheck(request, env))) {
+        return new Response('Too Many Requests', { 
+          status: 429,
+          headers: createSecurityHeaders()
+        });
+      }
+      
       const authHeader = request.headers.get('Authorization');
       console.log(`MCP endpoint ${url.pathname} accessed, auth present: ${!!authHeader}`);
       
