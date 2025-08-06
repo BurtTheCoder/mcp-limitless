@@ -2,6 +2,18 @@
 
 A Model Context Protocol (MCP) server that provides Claude with access to your [Limitless AI](https://limitless.ai) lifelogs. Deploy to Cloudflare Workers with GitHub OAuth authentication for secure access.
 
+## About Limitless
+
+[Limitless](https://limitless.ai) is a personalized AI wearable device (the Pendant) that helps you capture and recall conversations, meetings, and thoughts throughout your day. The Pendant features:
+
+- 🎙️ **Conversation Recording** - Captures meetings, personal reflections, and spontaneous thoughts with crystal clear audio
+- 🔖 **Moment Bookmarking** - Tap the device to bookmark important moments
+- 🧠 **AI-Powered Insights** - Ask questions about your recorded conversations and get personalized insights
+- 🔒 **Privacy-First** - HIPAA-compliant with permission-based data protection
+- 🔋 **All-Day Battery** - Lightweight wearable with durable aluminum body
+
+This MCP server allows Claude to access your Limitless lifelogs, enabling you to search, retrieve, and analyze your recorded conversations directly within Claude.
+
 > **Note**: This project requires manual setup rather than one-click deployment because it needs secure API keys (Limitless AI, GitHub OAuth) and creates KV namespaces for OAuth token storage. The setup process ensures your credentials remain private and secure.
 
 ## Features
