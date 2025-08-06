@@ -1,8 +1,15 @@
-// package.json
 {
   "name": "limitless-mcp-cloudflare",
-  "version": "0.3.0",
-  "private": true,
+  "version": "1.0.0",
+  "description": "MCP server for accessing Limitless AI lifelogs",
+  "author": "",
+  "license": "MIT",
+  "private": false,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/BurtTheCoder/mcp-limitless.git"
+  },
+  "type": "module",
   "scripts": {
     "dev": "wrangler dev",
     "start": "wrangler dev",
@@ -10,15 +17,16 @@
     "cf-typegen": "wrangler types"
   },
   "dependencies": {
-    "@cloudflare/mcp-server-auth": "^0.1.0",
-    "@cloudflare/mcp-server-router": "^0.1.0",
+    "agents": "^0.0.111",
+    "@cloudflare/workers-oauth-provider": "^0.0.4",
+    "@modelcontextprotocol/sdk": "^1.17.1",
     "hono": "^4.5.0",
-    "zod": "^3.23.0"
+    "zod": "^3.25.0"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.0.0",
     "@types/node": "^20.0.0",
     "typescript": "^5.0.0",
-    "wrangler": "^3.0.0"
+    "wrangler": "^4.28.0"
   }
 }

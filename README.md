@@ -1,274 +1,233 @@
-# Limitless MCP Server - Cloudflare Workers Deployment Guide
+# Limitless MCP Server for Cloudflare Workers
 
-## Quick Deploy with Button
+A Model Context Protocol (MCP) server that provides Claude with access to your [Limitless AI](https://limitless.ai) lifelogs. Deploy to Cloudflare Workers with GitHub OAuth authentication for secure access.
 
-The easiest way to deploy is using Cloudflare's "Deploy to Workers" button:
+> **Note**: This project requires manual setup rather than one-click deployment because it needs secure API keys (Limitless AI, GitHub OAuth) and creates KV namespaces for OAuth token storage. The setup process ensures your credentials remain private and secure.
 
-[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/your-username/limitless-mcp-cloudflare)
+## Features
 
-## Manual Deployment Steps
+- 🔍 **Search Lifelogs** - Hybrid semantic and keyword search across all your recordings
+- 📝 **Retrieve Full Content** - Get complete lifelog content including transcripts and summaries  
+- 📅 **List Recent Recordings** - Browse your latest lifelogs with date filtering
+- 🔐 **Secure Authentication** - GitHub OAuth integration for secure access
+- ⚡ **Edge Deployment** - Runs on Cloudflare Workers for low latency
+- 🎯 **Claude Integration** - Seamlessly works with Claude.ai as a custom connector
 
-### Prerequisites
-- Cloudflare account (free tier works)
-- Node.js 18+ installed
-- Limitless API key from [app.limitless.ai](https://app.limitless.ai)
+## Prerequisites
+
+- [Cloudflare account](https://dash.cloudflare.com/sign-up) (free tier works)
+- [Limitless AI](https://app.limitless.ai) account and API key
+- [GitHub account](https://github.com) for OAuth
+- [Node.js](https://nodejs.org/) 18+ installed locally
 - Claude Pro/Max/Team/Enterprise subscription
 
-### Step 1: Create the Project
+### Cloudflare Workers Free Tier
+
+This project runs perfectly on Cloudflare's free tier, which includes:
+- **100,000 requests per day** (more than enough for personal use)
+- **10ms CPU time per invocation** (sufficient for API calls)
+- **Up to 1MB KV storage** (plenty for OAuth tokens)
+- **Unlimited Durable Objects** (for MCP agent state)
+- **No credit card required**
+
+For typical usage with Claude, you'll likely use less than 1% of these limits.
+
+## Quick Start
+
+### 1. Clone and Install
 
 ```bash
-# Create a new directory
-mkdir limitless-mcp-cloudflare
-cd limitless-mcp-cloudflare
-
-# Initialize the project
-npm init -y
-
-# Create the file structure
-mkdir src
-touch src/index.ts src/mcp.ts src/limitless-auth-handler.ts
-touch wrangler.toml tsconfig.json .gitignore
-```
-
-### Step 2: Copy the Files
-
-Copy the provided code files:
-- `src/index.ts` - Main entry point
-- `src/mcp.ts` - MCP server implementation
-- `src/limitless-auth-handler.ts` - Auth handler
-- `package.json` - Dependencies
-- `wrangler.toml` - Cloudflare configuration
-- `tsconfig.json` - TypeScript configuration
-
-### Step 3: Install Dependencies
-
-```bash
+git clone https://github.com/BurtTheCoder/mcp-limitless.git
+cd mcp-limitless
 npm install
 ```
 
-### Step 4: Set Up Wrangler CLI
+### 2. Initial Setup
+
+Run the automated setup script:
 
 ```bash
-# Install Wrangler globally (if not already installed)
-npm install -g wrangler
-
-# Login to Cloudflare
-wrangler login
+./setup.sh
 ```
 
-### Step 5: Configure Secrets
+This will:
+- Create your `wrangler.toml` configuration
+- Set up KV namespaces for OAuth storage
+- Create a `.dev.vars` template for local development
 
-```bash
-# Add your Limitless API key as a secret
-wrangler secret put LIMITLESS_API_KEY
-# Enter your API key when prompted
+### 3. Configure API Keys
+
+#### Get your Limitless API Key
+1. Go to [app.limitless.ai](https://app.limitless.ai)
+2. Navigate to Settings → API
+3. Generate or copy your API key
+
+#### Create GitHub OAuth App
+1. Go to [GitHub Settings → Developer settings → OAuth Apps](https://github.com/settings/developers)
+2. Click "New OAuth App"
+3. Fill in:
+   - **Application name**: `Limitless MCP Server`
+   - **Homepage URL**: `https://your-worker.workers.dev` (you'll get this after deploy)
+   - **Authorization callback URL**: `https://your-worker.workers.dev/github/callback`
+4. Save your Client ID and Client Secret
+
+#### Update Local Configuration
+
+Edit `.dev.vars`:
+```env
+LIMITLESS_API_KEY="your-limitless-api-key-here"
+GITHUB_CLIENT_ID="your-github-client-id"
+GITHUB_CLIENT_SECRET="your-github-client-secret"
 ```
 
-### Step 6: Local Development
+### 4. Test Locally
 
 ```bash
-# Create a .dev.vars file for local development
-echo 'LIMITLESS_API_KEY="your-api-key-here"' > .dev.vars
-
-# Start the development server
 npm run dev
 ```
 
-Your server will be available at `http://localhost:8787/sse`
+Your server will be available at `http://localhost:8787`
 
-### Step 7: Test with MCP Inspector
+Test the OAuth flow by visiting: `http://localhost:8787/authorize`
 
-```bash
-# In a new terminal, run the MCP inspector
-npx @modelcontextprotocol/inspector@latest
+### 5. Deploy to Cloudflare
 
-# Open browser
-open http://localhost:5173
-```
-
-Enter `http://localhost:8787/sse` in the inspector and click Connect.
-
-### Step 8: Deploy to Production
+Run the deployment script:
 
 ```bash
-# Deploy to Cloudflare Workers
-npm run deploy
+./deploy.sh
 ```
+
+This will prompt you to enter your secrets securely and deploy to Cloudflare Workers.
 
 You'll get a URL like: `https://limitless-mcp-server.your-account.workers.dev`
 
-## Connecting to Claude
+### 6. Update GitHub OAuth App
 
-### Option 1: Direct Connection (Claude Web)
+After deployment, update your GitHub OAuth App's callback URL to:
+```
+https://limitless-mcp-server.your-account.workers.dev/github/callback
+```
+
+### 7. Connect to Claude
 
 1. Go to [Claude.ai](https://claude.ai)
 2. Navigate to Settings → Connectors
 3. Click "Add custom connector"
-4. Enter your Workers URL: `https://limitless-mcp-server.your-account.workers.dev/sse`
-5. Click "Add"
+4. Enter your Workers URL with `/sse` endpoint:
+   ```
+   https://limitless-mcp-server.your-account.workers.dev/sse
+   ```
+5. Click "Add" and authorize with GitHub when prompted
 6. Enable the connector in your chat
 
-### Option 2: Local Proxy (Claude Desktop)
+## Available Tools in Claude
 
-For Claude Desktop, use the `mcp-remote` proxy:
+Once connected, Claude will have access to these tools:
 
-Update your Claude Desktop config:
+- **`Limitless Ai:search_lifelogs`** - Search using natural language or boolean operators
+  - Example: "meetings about the new project"
+  - Example: "dinner OR lunch with Bob"
 
-```json
-{
-  "mcpServers": {
-    "limitless": {
-      "command": "npx",
-      "args": [
-        "mcp-remote",
-        "https://limitless-mcp-server.your-account.workers.dev/sse"
-      ]
-    }
-  }
-}
+- **`Limitless Ai:get_lifelog`** - Retrieve a specific lifelog by ID
+  - Returns full content including transcript and summaries
+
+- **`Limitless Ai:list_recent_lifelogs`** - List your recent recordings
+  - Supports date filtering and pagination
+  - Can filter by starred status
+
+## Project Structure
+
+```
+mcp-limitless/
+├── src/
+│   ├── github-oauth-index.ts  # Main entry point with OAuth
+│   ├── mcp-agent.ts           # MCP server implementation
+│   ├── simple-index.ts        # Alternative without GitHub OAuth
+│   └── index.ts               # Alternative implementation
+├── wrangler.toml.example      # Cloudflare config template
+├── setup.sh                   # Automated setup script
+├── deploy.sh                  # Deployment script
+├── package.json               # Dependencies
+└── README.md                  # This file
 ```
 
-## Environment Variables
+## Configuration Options
 
-| Variable | Required | Description | How to Set |
-|----------|----------|-------------|------------|
-| `LIMITLESS_API_KEY` | Yes | Your Limitless API key | `wrangler secret put LIMITLESS_API_KEY` |
+### Environment Variables
 
-## Adding OAuth Authentication (Optional)
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `LIMITLESS_API_KEY` | Yes | Your Limitless AI API key |
+| `GITHUB_CLIENT_ID` | Yes | GitHub OAuth App Client ID |
+| `GITHUB_CLIENT_SECRET` | Yes | GitHub OAuth App Client Secret |
 
-To add proper OAuth authentication instead of using a shared API key:
+### Customization
 
-### Step 1: Create OAuth App
-
-If Limitless supports OAuth, create an OAuth app with:
-- Callback URL: `https://your-worker.workers.dev/callback`
-
-### Step 2: Update Secrets
-
-```bash
-wrangler secret put OAUTH_CLIENT_ID
-wrangler secret put OAUTH_CLIENT_SECRET
+To use without GitHub OAuth, change the main entry in `wrangler.toml`:
+```toml
+main = "src/simple-index.ts"  # Simple approval page instead of GitHub
 ```
-
-### Step 3: Update Auth Handler
-
-Modify `src/limitless-auth-handler.ts` to implement proper OAuth flow.
-
-## Features
-
-### Available Tools
-
-1. **search_lifelogs** - Hybrid search across your lifelogs
-2. **get_lifelogs** - Get lifelogs by date/time range
-3. **get_lifelog** - Get specific lifelog by ID
-4. **delete_lifelog** - Delete a lifelog (requires confirmation)
-
-### Available Prompts
-
-- **summarize_day** - Summarize today's activities
-- **find_conversations** - Find conversations about topics
-- **generate_tasks** - Extract action items
-
-## Testing Your Deployment
-
-### Test the SSE Endpoint
-
-```bash
-curl https://your-worker.workers.dev/sse \
-  -H "Accept: text/event-stream"
-```
-
-### Test with AI Playground
-
-1. Go to [Cloudflare AI Playground](https://playground.ai.cloudflare.com)
-2. Enter your Workers URL
-3. Test the tools
-
-### Test with Claude
-
-Ask Claude:
-- "Search my lifelogs for meetings about the new project"
-- "What did I discuss yesterday?"
-- "Generate tasks from my recent conversations"
-
-## Monitoring & Logs
-
-### View Logs
-
-```bash
-# Stream logs from your Worker
-wrangler tail
-
-# Or view in Cloudflare Dashboard
-# Go to Workers & Pages → your-worker → Logs
-```
-
-### Analytics
-
-View metrics in the Cloudflare Dashboard:
-- Request count
-- Error rate
-- Response times
-- CPU time usage
 
 ## Troubleshooting
 
 ### Connection Issues
 
-1. **CORS Errors**: Check that your Worker URL is correct
-2. **Authentication Failed**: Verify LIMITLESS_API_KEY is set correctly
-3. **Rate Limits**: The Limitless API allows 180 requests/minute
+1. **"MCP error -32000: Connection closed"**
+   - Ensure you're using the `/sse` endpoint
+   - Check that OAuth authentication completed successfully
 
-### Common Errors
+2. **"Tool not found" errors in Claude**
+   - Tools are namespaced as `Limitless Ai:tool_name`
+   - Claude should automatically detect this
 
-| Error | Solution |
-|-------|----------|
-| "LIMITLESS_API_KEY is not configured" | Run `wrangler secret put LIMITLESS_API_KEY` |
-| "Invalid API key" | Check your API key at app.limitless.ai |
-| "Rate limit exceeded" | Wait 60 seconds or reduce request frequency |
-| "Lifelog not found" | Verify the lifelog ID exists |
+3. **404 errors from Limitless API**
+   - Verify your API key is correct
+   - Check that your Limitless account has API access enabled
 
-### Debug Mode
-
-For detailed debugging:
+### Viewing Logs
 
 ```bash
-# Run with debug logging
-wrangler dev --log-level debug
+# Stream live logs from your worker
+npx wrangler tail
+
+# Or view in Cloudflare Dashboard
+# Go to Workers & Pages → your-worker → Logs
 ```
 
-## Cost & Limits
+### Rate Limits
 
-### Cloudflare Workers Free Tier
-- 100,000 requests/day
-- 10ms CPU time per request
-- Unlimited duration
+- Limitless API: 180 requests per minute
+- Cloudflare Workers Free: 100,000 requests per day
 
-### Limitless API Limits
-- 180 requests per minute
-- 10 results max per search
+## Security Considerations
 
-## Security Best Practices
+- Never commit `.dev.vars` or `wrangler.toml` (they're gitignored)
+- API keys are stored as encrypted secrets in Cloudflare
+- OAuth tokens expire after 1 hour
+- GitHub OAuth provides identity verification
 
-1. **Never commit secrets**: Use `wrangler secret` for API keys
-2. **Use wrangler.toml for non-sensitive config only**
-3. **Enable Cloudflare Access** for additional security (optional)
-4. **Monitor usage** through Cloudflare Analytics
+## Contributing
 
-## Next Steps
+Contributions are welcome! Please:
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test locally and with deployment
+5. Submit a pull request
 
-1. **Customize Tools**: Add more specific tools for your use case
-2. **Add Caching**: Implement KV storage for frequently accessed lifelogs
-3. **Enhanced Auth**: Implement per-user OAuth if available
-4. **Rate Limiting**: Add Cloudflare Rate Limiting rules
-5. **Custom Domain**: Set up a custom domain for your Worker
+## License
+
+MIT License - See [LICENSE](LICENSE) file for details
 
 ## Support
 
 - **Limitless Support**: [help.limitless.ai](https://help.limitless.ai)
-- **Cloudflare Docs**: [developers.cloudflare.com](https://developers.cloudflare.com)
-- **MCP Docs**: [modelcontextprotocol.io](https://modelcontextprotocol.io)
+- **Issues**: [GitHub Issues](https://github.com/BurtTheCoder/mcp-limitless/issues)
+- **MCP Documentation**: [modelcontextprotocol.io](https://modelcontextprotocol.io)
 
-## License
+## Acknowledgments
 
-MIT License - Feel free to modify and deploy your own version!
+- Built with [Model Context Protocol](https://modelcontextprotocol.io) by Anthropic
+- Powered by [Cloudflare Workers](https://workers.cloudflare.com)
+- Integrates with [Limitless AI](https://limitless.ai)

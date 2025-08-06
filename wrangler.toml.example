@@ -11,17 +11,22 @@ class_name = "LimitlessMCPAgent"
 tag = "v1"
 new_sqlite_classes = ["LimitlessMCPAgent"]
 
-# Enable logging in production
+# Enable logging in production (optional)
 # [observability.logs]
 # enabled = true
 
+# KV namespace for OAuth storage
+# Create with: npx wrangler kv namespace create OAUTH_KV
+# Then add the generated ID below
 [[kv_namespaces]]
 binding = "OAUTH_KV"
-id = "9b88d2c5b0d04661915ee8f59a95e733"
-preview_id = "oauth_store_dev"
+id = "YOUR_KV_NAMESPACE_ID_HERE"
+preview_id = "YOUR_PREVIEW_KV_ID_HERE"
 
 [vars]
 # Non-sensitive configuration can go here
 
 # Add your secrets using:
 # wrangler secret put LIMITLESS_API_KEY
+# wrangler secret put GITHUB_CLIENT_ID  
+# wrangler secret put GITHUB_CLIENT_SECRET
