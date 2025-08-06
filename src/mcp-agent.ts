@@ -42,7 +42,8 @@ async function makeApiRequest(
   
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`Limitless API error (${response.status}): ${errorText}`);
+    console.error(`Limitless API error (${response.status}): ${errorText}`);
+    throw new Error(`API request failed (${response.status})`);
   }
   
   return response.json();
@@ -215,7 +216,8 @@ export class LimitlessMCPAgent extends McpAgent<Env> {
     const apiKey = this.env.LIMITLESS_API_KEY;
     
     if (!apiKey) {
-      throw new Error("LIMITLESS_API_KEY is not configured");
+      console.error("LIMITLESS_API_KEY is not configured");
+      throw new Error("Server configuration error");
     }
 
     // Register tools
@@ -253,7 +255,7 @@ export class LimitlessMCPAgent extends McpAgent<Env> {
           return {
             content: [{
               type: "text",
-              text: `Error searching lifelogs: ${error.message}`
+              text: error.message.includes('API request failed') ? error.message : 'Failed to search lifelogs'
             }]
           };
         }
@@ -291,7 +293,7 @@ export class LimitlessMCPAgent extends McpAgent<Env> {
           return {
             content: [{
               type: "text",
-              text: `Error retrieving lifelog: ${error.message}`
+              text: error.message.includes('API request failed') ? error.message : 'Failed to retrieve lifelog'
             }]
           };
         }
@@ -343,7 +345,7 @@ export class LimitlessMCPAgent extends McpAgent<Env> {
           return {
             content: [{
               type: "text",
-              text: `Error listing lifelogs: ${error.message}`
+              text: error.message.includes('API request failed') ? error.message : 'Failed to list lifelogs'
             }]
           };
         }

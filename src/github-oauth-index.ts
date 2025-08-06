@@ -116,7 +116,7 @@ const authorizationHandler = {
         });
       } catch (error) {
         console.error('Error in authorization handler:', error);
-        return new Response(`Error: ${error.message}`, { status: 500 });
+        return new Response('Authorization failed', { status: 500 });
       }
     }
     
@@ -160,7 +160,7 @@ const authorizationHandler = {
           return Response.redirect(redirectTo, 302);
         } catch (error) {
           console.error('Error completing OAuth authorization:', error);
-          return new Response(`Error completing authorization: ${error.message}`, { status: 500 });
+          return new Response('Authorization failed', { status: 500 });
         }
       } else if (session.oauth_params) {
         // Manual OAuth completion - generate auth code and redirect
